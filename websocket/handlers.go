@@ -32,6 +32,13 @@ func RegisterClient(hub *Hub, c *gin.Context) {
 	// Optionally, extract identifying info (user id) from query or headers:
 	userID := c.Query("user_id")
 
+	if userID == "" {
+		log.Println("user_id query parameter is required")
+		conn.Close()
+		c.JSON(400, gin.H{"message": "user_id query parameter is required"})
+		return
+	}
+
 	client := &Client{
 		hub:  hub,
 		conn: conn,
@@ -51,5 +58,9 @@ func RegisterClient(hub *Hub, c *gin.Context) {
 func UnregisterClient(hub *Hub, c *gin.Context) {
 	userId := c.Query("user_id")
 	client := hub.clients
+	if client[userId] == nil {
+		log.Println("No client found with given user id")
+		return
+	}
 	hub.unregister <- client[userId]
 }
